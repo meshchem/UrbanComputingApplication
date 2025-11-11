@@ -1,22 +1,37 @@
-from fastapi import FastAPI, Request
-from pydantic import BaseModel
-from typing import List, Dict, Any
+from fastapi import FastAPI
+from pydantic import BaseModel, Field
+from typing import List, Dict
 from datetime import datetime
 
+app = FastAPI()
 
-app = FastAPI(title="T.C.Lib API")
-
-class SensorData(BaseModel):
+# 🧩 Define a model for each payload item
+class PayloadItem(BaseModel):
     name: str
     time: int
     values: Dict[str, float]
 
-@app.get("/")
-def root():
-    return {"message": "FastAPI is working"}
+# 🧩 Define the structure of the incoming SensorLogger data
+class SensorLoggerData(BaseModel):
+    deviceId: str
+    messageId: int
+    session_id: str = Field(alias="sessionId")  # 👈 map "sessionId" → Python attribute session_id
+    payload: List[PayloadItem]
+
 
 @app.post("/sensor")
-async def receive_sensor_data(data: SensorData):
-    # data = await request.json()
-    print("Incoming data:", data.dict)
-    return {"status": "received", "data": data}
+def receive_sensor_data(data: SensorLoggerData):
+    readings = []
+    for p in data.payload:
+        dbfs = p.values.get("dBFS")
+        timestamp = datetime.fromtimestamp(p.time / 1e9).isoformat()
+        readings.append({
+            "device_id": data.deviceId,
+            "session_id": data.session_id,
+            "name": p.name,
+            "noise_db": dbfs,
+            "timestamp": timestamp
+        })
+
+    print("Processed readings:", readings)
+    return {"status": "received", "count": len(readings), "readings": readings}
