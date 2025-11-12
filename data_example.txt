@@ -1,0 +1,14 @@
+{
+  "deviceId": "608f2fdf-9535-4592-901d-7bccef1d6638",
+  "messageId": 0,
+  "sessionId": "fcf9e21c-a2f8-4f8e-9116-3dca12bb2c8b",
+  "payload": [
+    {
+      "name": "microphone",
+      "time": 1762619579798000000,
+      "values": {
+        "dBFS": -69.63
+      }
+    }
+  ]
+}
