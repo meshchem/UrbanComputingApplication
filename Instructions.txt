@@ -1,0 +1,26 @@
+To run:
+
+- virtual env
+- have all dependencies found in requirements.txt
+- To run:
+ Terminal 1: uvicorn main:app --reload
+ Terminal 2: ngrok http 8000
+
+
+
+To do:
+Test with sensor logger app ✅
+- ngrok is a small networking tool that lets you share your
+  local computer’s web server (like your FastAPI app) with
+  the internet safely -> give this link to the sensorLogger app
+- A tool that gives your local server a secure, public HTTPS address
+- Lets your phone, teammates, or webhooks connect to your app while you’re developing locally
+- Public URL → forwards requests → your local FastAPI app
+
+Per-library grouping: /libraries/upper_lecky/readings/...
+
+Average noise calculation per payload + Noise-level classification
+
+Timestamps by date for efficient querying
+
+Capacity and resources data for each library
