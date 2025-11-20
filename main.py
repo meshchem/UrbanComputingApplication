@@ -28,10 +28,11 @@ app = FastAPI(title="T.C.Lib API")
 # ----------------- Library Validation -----------------
 VALID_LIBRARIES = {
     "upper_lecky", "lower_lecky",
-    "ussher_1", "ussher_2",
+    "ussher_1", "ussher_2", "ussher_3", "ussher_4", "ussher_5",
     "hamilton_1", "hamilton_2",
     "boland_1", "boland_2",
-    "postgrad_reading_room"
+    "postgrad_reading_room",
+    "kinsella_hall"
 }
 
 # ------------------ Models ------------------
