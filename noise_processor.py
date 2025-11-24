@@ -32,11 +32,11 @@ def classify_noise_level(avg_dbfs: float) -> str:
     Converts an average dBFS reading to a fun descriptive label.
     (Remember: closer to 0 = louder)
     """
-    if avg_dbfs < -60:
-        return "🤫 Library Silence"
-    elif avg_dbfs < -45:
-        return "💬 Whisper Zone"
-    elif avg_dbfs < -35:
-        return "🗣️ Chatty Corner"
+    if avg_dbfs < -40:
+        return "Quiet"
+    elif avg_dbfs < -30:
+        return "Medium"
+    elif avg_dbfs < -20:
+        return "Loud"
     else:
-        return "🎉 Chaos Mode"
+        return "Very Loud"
