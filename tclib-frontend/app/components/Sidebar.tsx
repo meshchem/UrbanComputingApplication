@@ -24,8 +24,15 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 h-screen bg-white shadow-lg p-6 flex flex-col">
-      <h1 className="text-3xl font-semibold mb-8">T.C.Lib</h1>
-
+      {/*<h1 className="text-3xl font-semibold mb-8">Libatron 4000</h1>*/}
+        <h1 className="text-3xl font-semibold mb-8">
+    <Link
+      href="/"
+      className="hover:text-blue-600 transition"
+    >
+      Libatron 4000
+    </Link>
+  </h1>
       <nav className="flex flex-col gap-4">
         {Object.entries(libs).map(([key, info]: any) => {
           const hasFloors = Object.keys(info.floors).length > 0;

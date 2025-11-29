@@ -16,7 +16,10 @@ def process_payload(data) -> Dict:
         raise HTTPException(status_code=400, detail="No dBFS values found in payload")
 
     avg_dbfs = round(statistics.mean(dbfs_values), 2)
-    timestamps = [datetime.fromtimestamp(p.time / 1e9).isoformat() for p in data.payload]
+    timestamps = [
+        datetime.fromtimestamp(p.time / 1e9).strftime("%Y-%m-%d %H:%M:%S")
+        for p in data.payload
+    ]
 
     return {
         "avg_noise_db": avg_dbfs,

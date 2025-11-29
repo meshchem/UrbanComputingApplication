@@ -3,6 +3,10 @@
 LIBRARIES = {
     "ussher": {
         "name": "Ussher Library",
+        "coords": {
+            "lat": 53.34297764349861,
+            "lng": -6.256005764007568
+        },
         "floors": {
             "1": {
                 "name": "Floor 1",
@@ -25,21 +29,26 @@ LIBRARIES = {
             },
             "4": {
                 "name": "Floor 4",
-                "resources": {}  # no extra specified yet
+                "resources": {}
             },
             "5": {
                 "name": "Floor 5",
-                "resources": {}  # no extra specified yet
+                "resources": {}
             },
         },
         "opening_hours": {
-            "Mon-Fri": "09:00-22:00",      # based on general opening hours page :contentReference[oaicite:2]{index=2}
+            "Mon-Fri": "09:00-22:00",
             "Sat": "09:30-17:00",
             "Sun": "11:00-17:00"
         }
     },
+
     "lecky": {
         "name": "Lecky Library",
+        "coords": {
+            "lat": 53.343320329307545,
+            "lng": -6.25670313835144
+        },
         "floors": {
             "upper": {
                 "name": "Upper Lecky",
@@ -56,9 +65,18 @@ LIBRARIES = {
             "Sun": "Closed"
         }
     },
+
     "postgraduate": {
         "name": "1937 Postgraduate Reading Room",
+        "coords": {
+            "lat": 53.34379432009283,
+            "lng": -6.257668733596803
+        },
         "floors": {},
+        "resources": {
+            "printer": 1,
+            "computers": 2
+        },
         "opening_hours": {
             "Mon-Sun": "24 hours"
         }
