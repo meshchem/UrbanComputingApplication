@@ -1,35 +1,59 @@
 "use client";
 
-import { useEffect } from "react";
+import {useEffect, useState} from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import {database} from "@/app/firebaseConfig";
+import {ref, onValue} from "firebase/database";
 
 const libraryIcon = L.icon({
-  iconUrl: "/lib_map_marker.png",
-  iconSize: [40, 40],
-  iconAnchor: [20, 40],
-  popupAnchor: [0, -40],
+    iconUrl: "/lib_map_marker.png",
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40],
 });
 
-export default function LibraryMap({ libraries }: { libraries: any }) {
-  useEffect(() => {
-    const map = L.map("map").setView([53.3438, -6.2546], 16);
+export default function LibraryMap() {
+    const [libraries, setLibraries] = useState<any>({});
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; OpenStreetMap contributors",
-    }).addTo(map);
+    // Load libraries
+    useEffect(() => {
+        const libsRef = ref(database, "libraries");
 
-    // Loop through libraries and add markers
-    Object.entries(libraries).forEach(([key, lib]: any) => {
-      if (!lib.coords) return;
+        const unsubscribe = onValue(libsRef, (snapshot) => {
+            setLibraries(snapshot.val() || {});
+        });
 
-      L.marker([lib.coords.lat, lib.coords.lng], { icon: libraryIcon })
-        .addTo(map)
-        .bindPopup(`<b>${lib.name}</b>`);
-    });
+        return () => unsubscribe();
+    }, []);
 
-    return () => map.remove();
-  }, [libraries]);
+    // Initialising map
+    useEffect(() => {
+        if (Object.keys(libraries).length === 0) return;
 
-  return <div id="map" className="w-full h-[600px] rounded-xl shadow-lg" />;
+        // create map
+        const map = L.map("map").setView([53.3438, -6.2546], 16);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "&copy; OpenStreetMap contributors",
+        }).addTo(map);
+
+        // adding markers
+        Object.entries(libraries).forEach(([key, lib]: any) => {
+            if (!lib.coords) return;
+
+            const {lat, lng} = lib.coords;
+
+            L.marker([lat, lng], {icon: libraryIcon})
+                .addTo(map)
+                .bindPopup(`<b>${lib.name}</b>`);
+        });
+
+        // cleanup
+        return () => {
+            map.remove();
+        };
+    }, [libraries]);
+
+    return <div id="map" className="w-full h-[600px] rounded-xl shadow-lg"/>;
 }
