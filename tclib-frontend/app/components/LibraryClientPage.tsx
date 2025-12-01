@@ -18,6 +18,7 @@ export default function LibraryClientPage({library, floor,}: {
     const [lastReading, setLastReading] = useState<Reading | null>(null);
     const [readingHistory, setReadingHistory] = useState<Reading[]>([]);
     const [capacityLevel, setCapacityLevel] = useState<string>("Empty");
+    const [lastCapacityUpdate, setLastCapacityUpdate] = useState<string | null>(null);
     const [resources, setResources] = useState<any>({});
     const [openingHours, setOpeningHours] = useState<any>({});
     const [todayHours, setTodayHours] = useState<string | null>(null);
@@ -72,21 +73,34 @@ export default function LibraryClientPage({library, floor,}: {
         onValue(resRef, (snapshot) => setResources(snapshot.val() || {}));
     }, [library, floor]);
 
-    // Load capacity
+    // Load capacity + lastUpdated
     useEffect(() => {
-        const capRef = ref(database, `${basePath}/capacity`);
-        onValue(capRef, (snapshot) => {
-            if (snapshot.val()) setCapacityLevel(snapshot.val());
+        const capLevelRef = ref(database, `${basePath}/capacity/level`);
+        const capTimeRef = ref(database, `${basePath}/capacity/lastUpdated`);
+
+        onValue(capLevelRef, (snapshot) => {
+            const value = snapshot.val();
+            if (value) setCapacityLevel(value);
+        });
+
+        onValue(capTimeRef, (snapshot) => {
+            const value = snapshot.val();
+            if (value) setLastCapacityUpdate(value);
         });
     }, [library, floor]);
 
+
     const setCapacity = (level: string) => {
-        set(ref(database, `${basePath}/capacity`), level);
+        const timestamp = new Date().toISOString();
+        set(ref(database, `${basePath}/capacity/level`), level);
+        set(ref(database, `${basePath}/capacity/lastUpdated`), timestamp);
+
         setCapacityLevel(level);
+        setLastCapacityUpdate(timestamp);
     };
 
 
-    // Color for noise box based on noise level
+    // Colour for noise box based on noise level
     const boxColour =
         lastReading?.noise_level?.includes("Quiet")
             ? "bg-green-200"
@@ -96,7 +110,18 @@ export default function LibraryClientPage({library, floor,}: {
                     ? "bg-orange-200"
                     : "bg-gray-200";
 
-    // Color for capacity box based on capacity level
+    // Colour for data points on graph
+    const dataColour =
+        lastReading?.noise_level?.includes("Quiet")
+            ? "#16a34a"   // green-600
+            : lastReading?.noise_level?.includes("Medium")
+                ? "#f59e0b" // yellow-500
+                : lastReading?.noise_level?.includes("Loud")
+                    ? "#ea580c" // orange-600
+                    : "#6b7280"; // gray-500
+
+
+    // Colour for capacity box based on capacity level
     const capacityColour =
         capacityLevel.includes("Empty")
             ? "bg-green-200"
@@ -110,22 +135,41 @@ export default function LibraryClientPage({library, floor,}: {
 
 
     // Graph (current_day only)
+    // const chartData = readingHistory
+    //     .filter((r) => new Date(r.created_at).toDateString() === today)
+    //     .map((r) => ({
+    //         time: new Date(r.created_at).toLocaleTimeString([], {
+    //             hour: "2-digit",
+    //             minute: "2-digit",
+    //             second: "2-digit",
+    //         }),
+    //         avg_noise_db: r.avg_noise_db,
+    //     }));
     const chartData = readingHistory
         .filter((r) => new Date(r.created_at).toDateString() === today)
         .map((r) => ({
             time: new Date(r.created_at).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
+                second: "2-digit"
             }),
             avg_noise_db: r.avg_noise_db,
+            noise_level: r.noise_level,
+            color: r.noise_level.includes("Quiet")
+                ? "#16a34a"      // green
+                : r.noise_level.includes("Medium")
+                    ? "#f59e0b"      // yellow
+                    : r.noise_level.includes("Loud")
+                        ? "#ea580c"      // orange
+                        : "#6b7280",     // gray
         }));
+
 
     return (
         <div className="space-y-10">
             <h1 className="text-3xl font-bold capitalize">
-                {floor ? `${library} / ${floor}` : library}
+                {floor ? `${library} ${floor}` : library}
             </h1>
-
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -145,40 +189,79 @@ export default function LibraryClientPage({library, floor,}: {
                             </button>
                         ))}
                     </div>
+
+                    <p className="text-sm leading-[3] text-gray-600">
+                        {lastCapacityUpdate && (
+                            <p>
+                                Updated {new Date(lastCapacityUpdate).toLocaleString()}
+                            </p>
+                        )}
+                    </p>
                 </div>
 
                 {/* Opening Hours */}
                 <div className="bg-white p-6 rounded-2xl shadow-lg">
                     <h2 className="text-xl font-semibold mb-3">Opening Hours</h2>
-                    <p className="text-gray-700">{todayHours ? todayHours : "Closed"}</p>
+                    <p className="text-5xl font-medium text-center leading-[1.5]">{todayHours ? todayHours : "Closed"}</p>
                 </div>
             </div>
 
 
             <div className="flex flex-col md:flex-row gap-6">
 
-                {/* --- Noise Section --- */}
+                {/*--- Noise Levels --- */}
                 {lastReading ? (
                     <div className={`p-6 rounded-2xl shadow-lg max-w-3xl ${boxColour}`}>
                         <p className="text-2xl font-semibold">{lastReading.noise_level}</p>
-                        <p className="text-lg">{lastReading.avg_noise_db} dBFS</p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-lg leading-[1.5]">{lastReading.avg_noise_db} dBFS</p>
+                        <p className="text-sm leading-[1.5] text-gray-600">
                             Updated {new Date(lastReading.created_at).toLocaleString()}
                         </p>
-
-                        <LineChart width={700} height={300} data={chartData}>
+                        <p className="text-sm leading-[1.5] text-gray-600"></p>
+                        <LineChart
+                            width={700}
+                            height={300}
+                            data={chartData}
+                            margin={{
+                                top: 0,
+                                right: 0,
+                                bottom: 20,
+                                left: 20,
+                            }}>
                             <CartesianGrid strokeDasharray="3 3"/>
-                            <XAxis dataKey="time"/>
-                            <YAxis
-                                label={{value: "dBFS", angle: -90, position: "insideLeft"}}
+                            <XAxis
+                                dataKey="time"
+                                label={{value: "Time", position: "insideBottom", offset: -10}}
                             />
-                            <Tooltip/>
+                            <YAxis
+                                label={{value: "dBFS", angle: 90, position: "insideLeft"}}
+                            />
+                            <Tooltip
+                                formatter={(value, name, props) => {
+                                    const {payload} = props;
+                                    return [
+                                        `${value} dBFS (${payload.noise_level})`, // main row
+                                        "Noise" // label name
+                                    ];
+                                }}
+                            />
                             <Line
                                 type="monotone"
                                 dataKey="avg_noise_db"
-                                stroke="#2563eb"
+                                stroke="#8884d8"
                                 strokeWidth={3}
-                                dot={false}
+                                //activeDot={{r: 8}}
+                                activeDot={{r: 6}}
+                                dot={({cx, cy, payload}) => (
+                                    <circle
+                                        cx={cx}
+                                        cy={cy}
+                                        r={4}
+                                        fill={payload.color}
+                                        stroke="black"
+                                        strokeWidth={1}
+                                    />
+                                )}
                             />
                         </LineChart>
                     </div>
