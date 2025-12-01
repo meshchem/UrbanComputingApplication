@@ -110,17 +110,6 @@ export default function LibraryClientPage({library, floor,}: {
                     ? "bg-orange-200"
                     : "bg-gray-200";
 
-    // Colour for data points on graph
-    const dataColour =
-        lastReading?.noise_level?.includes("Quiet")
-            ? "#16a34a"   // green-600
-            : lastReading?.noise_level?.includes("Medium")
-                ? "#f59e0b" // yellow-500
-                : lastReading?.noise_level?.includes("Loud")
-                    ? "#ea580c" // orange-600
-                    : "#6b7280"; // gray-500
-
-
     // Colour for capacity box based on capacity level
     const capacityColour =
         capacityLevel.includes("Empty")
@@ -133,18 +122,6 @@ export default function LibraryClientPage({library, floor,}: {
                         ? "bg-orange-300"
                         : "bg-red-400";
 
-
-    // Graph (current_day only)
-    // const chartData = readingHistory
-    //     .filter((r) => new Date(r.created_at).toDateString() === today)
-    //     .map((r) => ({
-    //         time: new Date(r.created_at).toLocaleTimeString([], {
-    //             hour: "2-digit",
-    //             minute: "2-digit",
-    //             second: "2-digit",
-    //         }),
-    //         avg_noise_db: r.avg_noise_db,
-    //     }));
 
     const chartData = readingHistory
         .filter((r) => new Date(r.created_at).toDateString() === today)
@@ -191,13 +168,13 @@ export default function LibraryClientPage({library, floor,}: {
                         ))}
                     </div>
 
-                    <p className="text-sm leading-[3] text-gray-600">
+                    <h4 className="text-sm leading-[3] text-gray-600">
                         {lastCapacityUpdate && (
-                            <p>
+                            <div>
                                 Updated {new Date(lastCapacityUpdate).toLocaleString()}
-                            </p>
+                            </div>
                         )}
-                    </p>
+                    </h4>
                 </div>
 
                 {/* Opening Hours */}

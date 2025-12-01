@@ -1,11 +1,8 @@
 "use client";
 
-import {useEffect, useState} from "react";
+import {useEffect} from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import {database} from "@/app/firebaseConfig";
-import {ref, onValue} from "firebase/database";
-
 const libraryIcon = L.icon({
     iconUrl: "/lib_map_marker.png",
     iconSize: [40, 40],
@@ -13,19 +10,7 @@ const libraryIcon = L.icon({
     popupAnchor: [0, -40],
 });
 
-export default function LibraryMap() {
-    const [libraries, setLibraries] = useState<any>({});
-
-    // Load libraries
-    useEffect(() => {
-        const libsRef = ref(database, "libraries");
-
-        const unsubscribe = onValue(libsRef, (snapshot) => {
-            setLibraries(snapshot.val() || {});
-        });
-
-        return () => unsubscribe();
-    }, []);
+export default function LibraryMap({ libraries }: { libraries: any }) {
 
     // Initialising map
     useEffect(() => {

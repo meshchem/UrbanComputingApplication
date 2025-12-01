@@ -4,13 +4,13 @@ import statistics
 from typing import Dict
 from fastapi import HTTPException
 
+
+    # Takes a SensorLoggerData object and returns processed results:
+    # - Average dBFS
+    # - Raw values
+    # - Human-readable timestamps
+
 def process_payload(data) -> Dict:
-    """
-    Takes a SensorLoggerData object and returns processed results:
-    - Average dBFS
-    - Raw values
-    - Human-readable timestamps
-    """
     dbfs_values = [p.values.get("dBFS") for p in data.payload if "dBFS" in p.values]
     if not dbfs_values:
         raise HTTPException(status_code=400, detail="No dBFS values found in payload")
@@ -29,12 +29,9 @@ def process_payload(data) -> Dict:
         "created_at": datetime.utcnow().isoformat()
     }
 
-
+# Converts an average dBFS reading to a plain english description of the noise level.
 def classify_noise_level(avg_dbfs: float) -> str:
-    """
-    Converts an average dBFS reading to a fun descriptive label.
-    (Remember: closer to 0 = louder)
-    """
+
     if avg_dbfs < -40:
         return "Quiet"
     elif avg_dbfs < -30:
