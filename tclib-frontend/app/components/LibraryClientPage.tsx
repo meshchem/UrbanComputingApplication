@@ -124,13 +124,13 @@ export default function LibraryClientPage({library, floor,}: {
     // Colour for capacity box based on capacity level
     const capacityColour =
         capacityLevel.includes("Empty")
-            ? "bg-green-200"
+            ? "bg-emerald-300"
             : capacityLevel.includes("Low")
-                ? "bg-yellow-200"
+                ? "bg-lime-300"
                 : capacityLevel.includes("Medium")
-                    ? "bg-orange-200"
+                    ? "bg-amber-300"
                     : capacityLevel.includes("Almost Full")
-                        ? "bg-red-300"
+                        ? "bg-orange-300"
                         : "bg-red-400";
 
 
@@ -145,6 +145,7 @@ export default function LibraryClientPage({library, floor,}: {
     //         }),
     //         avg_noise_db: r.avg_noise_db,
     //     }));
+
     const chartData = readingHistory
         .filter((r) => new Date(r.created_at).toDateString() === today)
         .map((r) => ({
@@ -182,7 +183,7 @@ export default function LibraryClientPage({library, floor,}: {
                                 key={level}
                                 onClick={() => setCapacity(level)}
                                 className={`px-3 py-2 rounded-lg border ${
-                                    capacityLevel === level ? capacityColour : "bg-gray-100"
+                                    capacityLevel === level ? capacityColour : "bg-sky-50"
                                 }`}
                             >
                                 {level}
