@@ -3,36 +3,34 @@ import time
 from datetime import datetime
 from collections import defaultdict
 from typing import List, Dict, Optional
-
 from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials, db
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-
 from library_metadata import LIBRARIES
+from pydantic import BaseModel, Field
 from noise_processor import process_payload, classify_noise_level
 
-# ------------------ In-memory aggregation state ------------------
-
+# In-memory aggregation state
 floor_buffers: Dict[str, list[float]] = defaultdict(list)
 last_flush: Dict[str, float] = {}
 
 FLUSH_INTERVAL = 5  # seconds
 
+# Helper functions
 
-# ------------------ Helpers ------------------
-
+# Create key for location: 'library-floor' or 'library-none'
 def make_key(library: str, floor: Optional[str]) -> str:
-    """Create stable key: 'library-floor' or 'library-none'."""
     return f"{library}-{floor or 'none'}"
 
 
-def flush_if_needed(library: str, floor: Optional[str]) -> Optional[Dict]:
-    """
-    If ≥ 5 seconds passed, merge all device averages into one reading, push to Firebase,
-    clear buffer, and return merged record.
-    """
+# If more than 5 seconds passed:
+# -> merge all device averages into one reading, push to Firebase,
+# -> clear buffer
+# -> return merged record.
+def check_buffer(library: str, floor: Optional[str]) -> Optional[Dict]:
+
     key = make_key(library, floor)
     now = time.time()
 
@@ -81,11 +79,10 @@ def flush_if_needed(library: str, floor: Optional[str]) -> Optional[Dict]:
     print(f"[RESET] Cleared buffer for '{key}'. Next flush window starts now.\n")
     return merged_record
 
-
-# ------------------ Load .env ------------------
+# Load .env
 load_dotenv()
 
-# ------------------ Firebase init ------------------
+# Firebase init
 cred_path = os.getenv("FIREBASE_CRED_PATH")
 db_url = os.getenv("FIREBASE_DB_URL")
 
@@ -97,7 +94,7 @@ print("FIREBASE_CRED_PATH:", cred_path)
 print("FIREBASE_DB_URL:", db_url)
 print("------------------------------\n")
 
-# ------------------ FastAPI setup ------------------
+#  FastAPI setup
 app = FastAPI(title="T.C.Lib API")
 
 app.add_middleware(
@@ -108,18 +105,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ------------------ Library Validation ------------------
+#  Library Validation
 VALID_LIBRARIES = {lib: info["floors"] for lib, info in LIBRARIES.items()}
 
-# ------------------ Models ------------------
-from pydantic import BaseModel, Field
-
-
+# Data validation models
 class PayloadItem(BaseModel):
     name: str
     time: int
     values: Dict[str, float]
-
 
 class SensorLoggerData(BaseModel):
     deviceId: str
@@ -128,12 +121,10 @@ class SensorLoggerData(BaseModel):
     payload: List[PayloadItem]
 
 
-# ------------------ Routes ------------------
-
+# Routes
 @app.get("/libraries")
 def get_libraries():
     return LIBRARIES
-
 
 @app.post("/sensor/{library}")
 def library_no_floor(library: str, data: SensorLoggerData):
@@ -166,14 +157,14 @@ def library_no_floor(library: str, data: SensorLoggerData):
     print(f"[BUFFER] {key} now has: {floor_buffers[key]}")
 
     # Flush if needed
-    flush_if_needed(library, None)
+    check_buffer(library, None)
 
     return processed
 
 
 @app.post("/sensor/{library}/{floor}")
 def library_with_floor(library: str, floor: str, data: SensorLoggerData):
-    print(f"\n=== Incoming payload: {library}/{floor} ===")
+    print(f"\n--> Incoming payload: {library}/{floor}")
 
     if library not in VALID_LIBRARIES:
         raise HTTPException(400, f"Unknown library '{library}'.")
@@ -201,6 +192,6 @@ def library_with_floor(library: str, floor: str, data: SensorLoggerData):
     print(f"[BUFFER] {key} now has: {floor_buffers[key]}")
 
     # Flush if needed
-    flush_if_needed(library, floor)
+    check_buffer(library, floor)
 
     return processed
