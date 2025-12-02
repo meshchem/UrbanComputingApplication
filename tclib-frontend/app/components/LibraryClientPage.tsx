@@ -106,9 +106,12 @@ export default function LibraryClientPage({library, floor,}: {
             ? "bg-green-200"
             : lastReading?.noise_level?.includes("Medium")
                 ? "bg-yellow-200"
-                : lastReading?.noise_level?.includes("Loud")
-                    ? "bg-orange-200"
-                    : "bg-gray-200";
+                : lastReading?.noise_level?.includes("Very Loud")
+                    ? "bg-red-200"
+                    : lastReading?.noise_level?.includes("Loud")
+                        ? "bg-orange-200"
+                        : "bg-grey-200";
+
 
     // Colour for capacity box based on capacity level
     const capacityColour =
@@ -137,9 +140,11 @@ export default function LibraryClientPage({library, floor,}: {
                 ? "#16a34a"      // green
                 : r.noise_level.includes("Medium")
                     ? "#f59e0b"      // yellow
-                    : r.noise_level.includes("Loud")
-                        ? "#ea580c"      // orange
-                        : "#6b7280",     // gray
+                    : r.noise_level.includes("Very Loud")
+                        ? "#e8120e"      // red
+                        : r.noise_level.includes("Loud")
+                            ? "#e84f0e"      // orange
+                            : "#6b7280",     // gray
         }));
 
 

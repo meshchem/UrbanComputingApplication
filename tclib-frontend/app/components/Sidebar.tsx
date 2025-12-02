@@ -30,7 +30,7 @@ export default function Sidebar() {
       href="/"
       className="hover:text-blue-600 transition"
     >
-      Libatron 4000
+      T.C.LIB
     </Link>
   </h1>
       <nav className="flex flex-col gap-4">
